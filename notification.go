@@ -47,7 +47,7 @@ func FunctionAfterExec(ctx *context.Context) {
 					value["Message"] = formatNotificationMessage(message, u)
 					NotConf["CuerpoNotificacion"] = value
 					data := map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": NotConf["Perfiles"], "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"]}
-					sendJson(beego.AppConfig.String("configuracionService")+"notify", "POST", &res, data)
+					sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
 				} else {
 					beego.Info("Not type assertion for ", NotConf["CuerpoNotificacion"].(map[string]interface{}))
 				}
