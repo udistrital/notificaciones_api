@@ -37,8 +37,10 @@ func FunctionAfterExec(ctx *context.Context) {
 	var u map[string]interface{}
 	var value map[string]interface{}
 	FillStruct(ctx.Input.Data()["json"], &u)
+	beego.Info("url se ", beego.AppConfig.String("appname"))
 	if tip, e := u["Type"].(string); e {
 		serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" + ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Tipo.Nombre:" + tip + ",Aplicacion.Nombre:" + beego.AppConfig.String("appname")
+		beego.Error(serviceUrl)
 
 		if err := getJson(serviceUrl, &v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
@@ -47,6 +49,7 @@ func FunctionAfterExec(ctx *context.Context) {
 					value["Message"] = formatNotificationMessage(message, u)
 					NotConf["CuerpoNotificacion"] = value
 					data := map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": NotConf["Perfiles"], "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"]}
+					beego.Error(beego.AppConfig.String("notificacionService") + "notify")
 					sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
 				} else {
 					beego.Info("Not type assertion for ", NotConf["CuerpoNotificacion"].(map[string]interface{}))
@@ -131,6 +134,7 @@ func FunctionFinishRouter(ctx *context.Context) {
 }
 
 func InitMiddleware() {
+	beego.Info("init...")
 	beego.InsertFilter("*", beego.AfterExec, FunctionAfterExec, false)
 }
 
