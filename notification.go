@@ -36,19 +36,25 @@ func FunctionAfterExec(ctx *context.Context) {
 	var v []map[string]interface{}
 	var u map[string]interface{}
 	var value map[string]interface{}
+	var notifyUser string
 	FillStruct(ctx.Input.Data()["json"], &u)
 	beego.Info("url se ", beego.AppConfig.String("appname"))
 	if tip, e := u["Type"].(string); e {
 		serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" + ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Tipo.Nombre:" + tip + ",Aplicacion.Nombre:" + beego.AppConfig.String("appname")
 		beego.Error(serviceUrl)
-
+		FillStructDeep(u, "Body.NotifyUser", &notifyUser)
 		if err := getJson(serviceUrl, &v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				if err = json.Unmarshal([]byte(NotConf["CuerpoNotificacion"].(string)), &value); err == nil {
 					message := value["Message"].(string)
 					value["Message"] = formatNotificationMessage(message, u)
 					NotConf["CuerpoNotificacion"] = value
-					data := map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": NotConf["Perfiles"], "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"]}
+					data := make(map[string]interface{})
+					if notifyUser == "" {
+						data = map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": NotConf["Perfiles"], "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"], "UserDestination": notifyUser}
+					} else {
+						data = map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": nil, "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"], "UserDestination": notifyUser}
+					}
 					beego.Error(beego.AppConfig.String("notificacionService") + "notify")
 					sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
 				} else {
@@ -58,6 +64,7 @@ func FunctionAfterExec(ctx *context.Context) {
 		} else {
 			beego.Info(err)
 		}
+
 	}
 
 }
