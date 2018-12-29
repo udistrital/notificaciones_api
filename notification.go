@@ -27,7 +27,9 @@ func FunctionBeforeRouter(ctx *context.Context) {
 	beego.Info("beego.BeforeRouter: Executing Before finding router")
 }
 func FunctionBeforeExec(ctx *context.Context) {
-
+	var u map[string]interface{}
+	FillStruct(ctx.Input.Data()["json"], &u)
+	beego.Info(u)
 	beego.Info("beego.BeforeExec: After finding router and before executing the matched Controller")
 }
 
@@ -35,14 +37,15 @@ func FunctionAfterExec(ctx *context.Context) {
 	var res interface{}
 	var v []map[string]interface{}
 	var u map[string]interface{}
+	var x map[string]interface{}
 	var value map[string]interface{}
-	var notifyUser string
+	json.Unmarshal(ctx.Input.RequestBody, &x)
 	FillStruct(ctx.Input.Data()["json"], &u)
-	beego.Info("url se ", beego.AppConfig.String("appname"))
 	if tip, e := u["Type"].(string); e {
-		serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" + ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Tipo.Nombre:" + tip + ",Aplicacion.Nombre:" + beego.AppConfig.String("appname")
+		serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" +
+			ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Tipo.Nombre:" + tip + ",Aplicacion.Nombre:" +
+			beego.AppConfig.String("appname")
 		beego.Error(serviceUrl)
-		FillStructDeep(u, "Body.NotifyUser", &notifyUser)
 		if err := getJson(serviceUrl, &v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				if err = json.Unmarshal([]byte(NotConf["CuerpoNotificacion"].(string)), &value); err == nil {
@@ -50,10 +53,21 @@ func FunctionAfterExec(ctx *context.Context) {
 					value["Message"] = formatNotificationMessage(message, u)
 					NotConf["CuerpoNotificacion"] = value
 					data := make(map[string]interface{})
-					if notifyUser == "" {
-						data = map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": NotConf["Perfiles"], "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"], "UserDestination": notifyUser}
+
+					if x["NotifyUser"] == nil {
+						data = map[string]interface{}{
+							"ConfiguracionNotificacion": NotConf["Id"],
+							"DestinationProfiles":       NotConf["Perfiles"],
+							"Application":               NotConf["App"],
+							"NotificationBody":          NotConf["CuerpoNotificacion"],
+							"UserDestination":           ""}
 					} else {
-						data = map[string]interface{}{"ConfiguracionNotificacion": NotConf["Id"], "DestinationProfiles": nil, "Application": NotConf["App"], "NotificationBody": NotConf["CuerpoNotificacion"], "UserDestination": notifyUser}
+						data = map[string]interface{}{
+							"ConfiguracionNotificacion": NotConf["Id"],
+							"DestinationProfiles":       nil,
+							"Application":               NotConf["App"],
+							"NotificationBody":          NotConf["CuerpoNotificacion"],
+							"UserDestination":           x["NotifyUser"]}
 					}
 					beego.Error(beego.AppConfig.String("notificacionService") + "notify")
 					sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
