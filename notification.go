@@ -41,11 +41,17 @@ func FunctionAfterExec(ctx *context.Context) {
 	var value map[string]interface{}
 	json.Unmarshal(ctx.Input.RequestBody, &x)
 	FillStruct(ctx.Input.Data()["json"], &u)
+	serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" +
+		ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Aplicacion.Nombre:" +
+		beego.AppConfig.String("appname")
+	beego.Error(serviceUrl)
+	beego.Info(serviceUrl)
 	if tip, e := u["Type"].(string); e {
 		serviceUrl := beego.AppConfig.String("configuracionService") + "notificacion_configuracion?query=EndPoint:" +
 			ctx.Request.URL.String() + ",MetodoHttp.Nombre:" + ctx.Request.Method + ",Tipo.Nombre:" + tip + ",Aplicacion.Nombre:" +
 			beego.AppConfig.String("appname")
 		beego.Error(serviceUrl)
+		beego.Info(serviceUrl)
 		if err := getJson(serviceUrl, &v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				if err = json.Unmarshal([]byte(NotConf["CuerpoNotificacion"].(string)), &value); err == nil {
