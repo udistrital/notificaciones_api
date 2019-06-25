@@ -57,8 +57,10 @@ func FunctionAfterExec(ctx *context.Context) {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				jsonMensaje = NotConf["CuerpoNotificacion"].(string)
 				beego.Info("jsonMensaje:" + jsonMensaje)
-				json.Unmarshal(jsonBytes, &mt.Message)
 				app := NotConf["Aplicacion"].(map[string]interface{})
+				jsonBytes = []byte(jsonMensaje)
+				beego.Info(jsonBytes)
+				json.Unmarshal(jsonBytes, &mt.Message)
 				mt.Message = formatNotificationMessage(mt.Message, u)
 				NotConf["CuerpoNotificacion"] = mt
 				data := make(map[string]interface{})
@@ -175,12 +177,9 @@ func sendJson(urlp string, trequest string, target interface{}, datajson interfa
 	if datajson != nil {
 		json.NewEncoder(b).Encode(datajson)
 	}
-	//proxyUrl, err := url.Parse("http://10.20.4.15:3128")
-	//http.DefaultTransport = &http.Transport{Proxy: http.ProxyURL(proxyUrl)}
 	client := &http.Client{}
 	req, err := http.NewRequest(trequest, urlp, b)
 	r, err := client.Do(req)
-	//r, err := http.Post(url, "application/json; charset=utf-8", b)
 	if err != nil {
 		beego.Error("error", err)
 		return err
@@ -191,8 +190,6 @@ func sendJson(urlp string, trequest string, target interface{}, datajson interfa
 }
 
 func getJson(urlp string, target interface{}) error {
-	//proxyUrl, err := url.Parse("http://10.20.4.15:3128")
-	//http.DefaultTransport = &http.Transport{Proxy: http.ProxyURL(proxyUrl)}
 	r, err := http.Get(urlp)
 	if err != nil {
 		return err
