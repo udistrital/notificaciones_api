@@ -50,16 +50,15 @@ func FunctionAfterExec(ctx *context.Context) {
 	FillStruct(ctx.Input.Data()["json"], &u)
 	if tip, e := u["Type"].(string); e {
 		r := httplib.Get(beego.AppConfig.String("configuracionService") + "notificacion_configuracion")
+		beego.Info(r)
 		r.Param("query", "EndPoint:"+ctx.Request.URL.String()+",MetodoHttp.Nombre:"+ctx.Request.Method+",Tipo.Nombre:"+tip+",Aplicacion.Nombre:"+
 			beego.AppConfig.String("appname"))
 		if err := r.ToJSON(&v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				jsonMensaje = NotConf["CuerpoNotificacion"].(string)
 				beego.Info("jsonMensaje:" + jsonMensaje)
-				jsonBytes = []byte(jsonMensaje)
-				beego.Info(jsonBytes)
 				json.Unmarshal(jsonBytes, &mt.Message)
-				fmt.Println(mt.Message)
+				app := NotConf["Aplicacion"].(map[string]interface{})
 				mt.Message = formatNotificationMessage(mt.Message, u)
 				NotConf["CuerpoNotificacion"] = mt
 				data := make(map[string]interface{})
@@ -70,16 +69,21 @@ func FunctionAfterExec(ctx *context.Context) {
 						"DestinationProfiles":       NotConf["Perfiles"],
 						"Application":               NotConf["App"],
 						"NotificationBody":          NotConf["CuerpoNotificacion"],
-						"UserDestination":           ""}
+						"UserDestination":           "",
+						"Alias":                     app["Alias"],
+						"EstiloIcono":               app["EstiloIcono"],
+					}
 				} else {
 					data = map[string]interface{}{
 						"ConfiguracionNotificacion": NotConf["Id"],
 						"DestinationProfiles":       nil,
 						"Application":               NotConf["App"],
 						"NotificationBody":          NotConf["CuerpoNotificacion"],
-						"UserDestination":           x["NotifyUser"]}
+						"UserDestination":           x["NotifyUser"],
+						"Alias":                     app["Alias"],
+						"EstiloIcono":               app["EstiloIcono"]}
 				}
-				beego.Error(beego.AppConfig.String("notificacionService") + "notify")
+				beego.Info("Test:" + beego.AppConfig.String("notificacionService") + "notify")
 				sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
 			}
 		} else {
