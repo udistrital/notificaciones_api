@@ -74,7 +74,7 @@ func FunctionAfterExec(ctx *context.Context) {
 						"UserDestination":           "",
 						"Alias":                     app["Alias"],
 						"EstiloIcono":               app["EstiloIcono"],
-					}
+						"Estado":                    "ENVIADA"}
 				} else {
 					data = map[string]interface{}{
 						"ConfiguracionNotificacion": NotConf["Id"],
@@ -83,7 +83,8 @@ func FunctionAfterExec(ctx *context.Context) {
 						"NotificationBody":          NotConf["CuerpoNotificacion"],
 						"UserDestination":           x["NotifyUser"],
 						"Alias":                     app["Alias"],
-						"EstiloIcono":               app["EstiloIcono"]}
+						"EstiloIcono":               app["EstiloIcono"],
+						"Estado":                    "ENVIADA"}
 				}
 				beego.Info("Test:" + beego.AppConfig.String("notificacionService") + "notify")
 				sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
