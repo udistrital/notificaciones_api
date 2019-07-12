@@ -50,9 +50,11 @@ func FunctionAfterExec(ctx *context.Context) {
 	FillStruct(ctx.Input.Data()["json"], &u)
 	if tip, e := u["Type"].(string); e {
 		r := httplib.Get(beego.AppConfig.String("configuracionService") + "notificacion_configuracion")
+		beego.Info(beego.AppConfig.String("configuracionService") + "notificacion_configuracion")
 		r.Param("query", "EndPoint:"+ctx.Request.URL.String()+",MetodoHttp.Nombre:"+ctx.Request.Method+",Tipo.Nombre:"+tip+",Aplicacion.Nombre:"+
 			beego.AppConfig.String("appname"))
 		if err := r.ToJSON(&v); err == nil && v != nil {
+			beego.Info(v)
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				jsonMensaje = NotConf["CuerpoNotificacion"].(string)
 				beego.Info("jsonMensaje:" + jsonMensaje)
@@ -122,7 +124,6 @@ func formatNotificationMessage(message string, data map[string]interface{}) (res
 		textReplace := fmt.Sprintf("%v", deepData)
 		res = strings.Replace(res, "<field>"+field[1]+"</field>", textReplace, -1)
 	}
-
 	return
 }
 
