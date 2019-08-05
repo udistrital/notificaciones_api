@@ -42,19 +42,27 @@ func FunctionAfterExec(ctx *context.Context) {
 	var mt Mensaje
 	var jsonMensaje string
 	var jsonBytes []byte
-	var res interface{}
+	var res []map[string]interface{}
 	var v []map[string]interface{}
+	var z []map[string]interface{}
 	var u map[string]interface{}
 	var x map[string]interface{}
-	json.Unmarshal(ctx.Input.RequestBody, &x)
 	FillStruct(ctx.Input.Data()["json"], &u)
 	if tip, e := u["Type"].(string); e {
-		r := httplib.Get(beego.AppConfig.String("configuracionService") + "notificacion_configuracion")
-		beego.Info(beego.AppConfig.String("configuracionService") + "notificacion_configuracion")
-		r.Param("query", "EndPoint:"+ctx.Request.URL.String()+",MetodoHttp.Nombre:"+ctx.Request.Method+",Tipo.Nombre:"+tip+",Aplicacion.Nombre:"+
-			beego.AppConfig.String("appname"))
+		url := beego.AppConfig.String("configuracionService") + "notificacion_configuracion/getConfiguracion/"
+		r := httplib.Get(beego.AppConfig.String("configuracionService") + "notificacion_configuracion/")
+		dataBody := map[string]interface{}{
+			"Aplicacion": beego.AppConfig.String("appname"),
+			"EndPoint":   ctx.Request.URL.String(),
+			"MetodoHttp": ctx.Request.Method,
+			"Tipo":       tip,
+		}
+		sendJson(url, "POST", &z, dataBody)
+		beego.Info(z[0]["Id"])
+		str := fmt.Sprintf("%v", (z[0])["Id"])
+		beego.Info(str)
+		r.Param("query", "Id:"+str)
 		if err := r.ToJSON(&v); err == nil && v != nil {
-			beego.Info(v)
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				jsonMensaje = NotConf["CuerpoNotificacion"].(string)
 				beego.Info("jsonMensaje:" + jsonMensaje)
@@ -62,8 +70,11 @@ func FunctionAfterExec(ctx *context.Context) {
 				jsonBytes = []byte(jsonMensaje)
 				beego.Info(jsonBytes)
 				json.Unmarshal(jsonBytes, &mt.Message)
+
 				mt.Message = formatNotificationMessage(mt.Message, u)
+				beego.Info(mt.Message)
 				NotConf["CuerpoNotificacion"] = mt
+
 				data := make(map[string]interface{})
 
 				if x["NotifyUser"] == nil {
