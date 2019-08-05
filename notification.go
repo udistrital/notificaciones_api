@@ -177,7 +177,7 @@ func FunctionFinishRouter(ctx *context.Context) {
 }
 
 func InitMiddleware() {
-	beego.Info("init...")
+	beego.Info("init 2.0 Notificacion Lib.")
 	beego.InsertFilter("*", beego.AfterExec, FunctionAfterExec, false)
 }
 
