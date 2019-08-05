@@ -15,7 +15,7 @@ import (
 )
 
 type Mensaje struct {
-	Message string
+	Message map[string]string
 }
 
 func failOnError(err error, msg string) {
@@ -65,14 +65,10 @@ func FunctionAfterExec(ctx *context.Context) {
 		if err := r.ToJSON(&v); err == nil && v != nil {
 			if NotConf, err := profilesExtract(v[0]); err == nil {
 				jsonMensaje = NotConf["CuerpoNotificacion"].(string)
-				beego.Info("jsonMensaje:" + jsonMensaje)
 				app := NotConf["Aplicacion"].(map[string]interface{})
 				jsonBytes = []byte(jsonMensaje)
-				beego.Info(jsonBytes)
 				json.Unmarshal(jsonBytes, &mt.Message)
-
-				mt.Message = formatNotificationMessage(mt.Message, u)
-				beego.Info(mt.Message)
+				mt.Message["Message"] = formatNotificationMessage(mt.Message["Message"], u)
 				NotConf["CuerpoNotificacion"] = mt
 
 				data := make(map[string]interface{})
@@ -98,6 +94,7 @@ func FunctionAfterExec(ctx *context.Context) {
 						"EstiloIcono":               app["EstiloIcono"],
 						"Estado":                    "ENVIADA"}
 				}
+				beego.Info(data)
 				beego.Info("Test:" + beego.AppConfig.String("notificacionService") + "notify")
 				sendJson(beego.AppConfig.String("notificacionService")+"notify", "POST", &res, data)
 			}
