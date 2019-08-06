@@ -47,6 +47,7 @@ func FunctionAfterExec(ctx *context.Context) {
 	var z []map[string]interface{}
 	var u map[string]interface{}
 	var x map[string]interface{}
+	json.Unmarshal(ctx.Input.RequestBody, &x)
 	FillStruct(ctx.Input.Data()["json"], &u)
 	if tip, e := u["Type"].(string); e {
 		url := beego.AppConfig.String("configuracionService") + "notificacion_configuracion/getConfiguracion/"
@@ -84,6 +85,7 @@ func FunctionAfterExec(ctx *context.Context) {
 						"EstiloIcono":               app["EstiloIcono"],
 						"Estado":                    "ENVIADA"}
 				} else {
+
 					data = map[string]interface{}{
 						"ConfiguracionNotificacion": NotConf["Id"],
 						"DestinationProfiles":       nil,
