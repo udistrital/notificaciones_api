@@ -1,3 +1,8 @@
+# Librería para notificaciones notificaciones_lib
+
+La librería se encarga de enviar notificaciones que han sido configuradas previamente en [configuracion](https://pruebasconfiguracion.portaloas.udistrital.edu.co/#/pages/dashboard)
+
+
 # Instalación e inicialización de la librería.
 
 1. Importe la librería notificaciones_lib en main.go
